@@ -19,6 +19,8 @@ const kmhRadio = document.getElementById("kmhRadio");
 const mphRadio = document.getElementById("mphRadio");
 const precipitationMmRadio = document.getElementById("precipitationMmRadio");
 const precipitationInRadio = document.getElementById("precipitationInRadio");
+const visibilityKmRadio = document.getElementById("visibilityKmRadio");
+const visibilityMilesRadio = document.getElementById("visibilityMilesRadio");
 
 const apiURL = "http://api.weatherapi.com/v1/";
 
@@ -31,6 +33,7 @@ var temperatureUnit = "C"; //C or F
 var pressureUnit = "mb"; //mb or in
 var windSpeedUnit = "km/h"; //km/h or mph
 var precipitationUnit = "mm"; //mm or in
+var visibilityUnit = "km"; //km or miles
 
 addEventListener("DOMContentLoaded", function() {
     if(!navButtonsClickable) {
@@ -61,6 +64,8 @@ kmhRadio.addEventListener("change", () => setWindSpeedUnit("km/h"));
 mphRadio.addEventListener("change", () => setWindSpeedUnit("mph"));
 precipitationMmRadio.addEventListener("change", () => setPrecipitationUnit("mm"));
 precipitationInRadio.addEventListener("change", () => setPrecipitationUnit("in"));
+visibilityKmRadio.addEventListener("change", () => setVisibilityUnit("km"));
+visibilityMilesRadio.addEventListener("change", () => setVisibilityUnit("miles"));
 
 function searchCity() {
     let city = cityInput.value;
@@ -154,13 +159,22 @@ function setPrecipitationUnit(unit) {
     }
 }
 
+function setVisibilityUnit(unit) {
+    if(unit === "km" || unit === "miles") {
+        visibilityUnit = unit;
+        if(currentCityData !== null) {
+            showCurrentWeather();
+        }
+    }
+}
+
 function showCurrentWeather() {
     if(currentCityData === null) {
         currentDataContainer.style.hidden = true;
         todayButton.disabled = true;
     }
     else {
-        //TODO: mértékegység selectorokkal változzon a kirt adat
+        //TODO: szélirány átdolgozása
         currentDataContainer.style.hidden = false;
         forecastDataContainer.style.hidden = true;
         historicalDataContainer.style.hidden = true;
@@ -188,9 +202,10 @@ function showCurrentWeather() {
                 <li class="list-group-item"><strong>Szél:</strong> ` + 
                 (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + `, ${currentCityData.current.wind_dir}</li>
                 <li class="list-group-item"><strong>Csapadék:</strong> ` +
-                (precipitationUnit === "mm" ? `${currentCityData.current.precip_mm} mm` : `${currentCityData.current.precip_in} inches`) + `</li>
+                (precipitationUnit === "mm" ? `${currentCityData.current.precip_mm} mm` : `${currentCityData.current.precip_in} inch`) + `</li>
                 <li class="list-group-item"><strong>UV index:</strong> ${currentCityData.current.uv}</li>
-                <li class="list-group-item"><strong>Látótávolság:</strong> ${currentCityData.current.vis_km} km</li>
+                <li class="list-group-item"><strong>Látótávolság:</strong> ` +
+                (visibilityUnit === "km" ? `${currentCityData.current.vis_km} km` : `${currentCityData.current.vis_miles} mérföld`) + `</li>
                 </ul>
                 <div class="text-end">
                 <small class="text-muted">Utolsó frissítés(helyi idő szerint): ${currentCityData.current.last_updated}</small>
