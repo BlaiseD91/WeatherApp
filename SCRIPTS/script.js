@@ -13,6 +13,8 @@ const forecastDataContainer = document.getElementById("forecastData");
 const historicalDataContainer = document.getElementById("historicalData");
 const celsiusRadio = document.getElementById("celsiusRadio");
 const fahrenheitRadio = document.getElementById("fahrenheitRadio");
+const pressureMbRadio = document.getElementById("pressureMbRadio");
+const pressureInRadio = document.getElementById("pressureInRadio");
 
 const apiURL = "http://api.weatherapi.com/v1/";
 
@@ -22,6 +24,7 @@ var apiKey = "";
 var navButtonsClickable = false;
 var currentCityData = null;
 var temperatureUnit = "C"; //C or F
+var pressureUnit = "mb"; //mb or in
 
 addEventListener("DOMContentLoaded", function() {
     if(!navButtonsClickable) {
@@ -46,6 +49,8 @@ searchButton.addEventListener("click", searchCity);
 todayButton.addEventListener("click", showCurrentWeather);
 celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
 fahrenheitRadio.addEventListener("change", () => setTemperatureUnit("F"));
+pressureMbRadio.addEventListener("change", () => setPressureUnit("mb"));
+pressureInRadio.addEventListener("change", () => setPressureUnit("in"));
 
 function searchCity() {
     let city = cityInput.value;
@@ -112,6 +117,14 @@ function setTemperatureUnit(unit) {
         }
     }
 }
+function setPressureUnit(unit) {
+    if(unit === "mb" || unit === "in") {
+        pressureUnit = unit;
+        if(currentCityData !== null) {
+            showCurrentWeather();
+        }
+    }
+}
 
 function showCurrentWeather() {
     if(currentCityData === null) {
@@ -142,7 +155,8 @@ function showCurrentWeather() {
                 (temperatureUnit ==="C" ? `${currentCityData.current.feelslike_c} °C` : `${currentCityData.current.feelslike_f} °F`) + `</li>
                 <li class="list-group-item"><strong>Leírás:</strong> ${currentCityData.current.condition.text}</li>
                 <li class="list-group-item"><strong>Páratartalom:</strong> ${currentCityData.current.humidity} %</li>
-                <li class="list-group-item"><strong>Légnyomás:</strong> ${currentCityData.current.pressure_mb} mb</li>
+                <li class="list-group-item"><strong>Légnyomás:</strong> ` + 
+                (pressureUnit === "mb" ? `${currentCityData.current.pressure_mb} hPa` : `${currentCityData.current.pressure_in} inHg`) + `</li>
                 <li class="list-group-item"><strong>Szél:</strong> ${currentCityData.current.wind_kph} km/h, ${currentCityData.current.wind_dir}</li>
                 <li class="list-group-item"><strong>Csapadék:</strong> ${currentCityData.current.precip_mm} mm</li>
                 <li class="list-group-item"><strong>UV index:</strong> ${currentCityData.current.uv}</li>
