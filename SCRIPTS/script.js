@@ -15,6 +15,8 @@ const celsiusRadio = document.getElementById("celsiusRadio");
 const fahrenheitRadio = document.getElementById("fahrenheitRadio");
 const pressureMbRadio = document.getElementById("pressureMbRadio");
 const pressureInRadio = document.getElementById("pressureInRadio");
+const kmhRadio = document.getElementById("kmhRadio");
+const mphRadio = document.getElementById("mphRadio");
 
 const apiURL = "http://api.weatherapi.com/v1/";
 
@@ -25,6 +27,7 @@ var navButtonsClickable = false;
 var currentCityData = null;
 var temperatureUnit = "C"; //C or F
 var pressureUnit = "mb"; //mb or in
+var windSpeedUnit = "km/h"; //km/h or mph
 
 addEventListener("DOMContentLoaded", function() {
     if(!navButtonsClickable) {
@@ -51,6 +54,8 @@ celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
 fahrenheitRadio.addEventListener("change", () => setTemperatureUnit("F"));
 pressureMbRadio.addEventListener("change", () => setPressureUnit("mb"));
 pressureInRadio.addEventListener("change", () => setPressureUnit("in"));
+kmhRadio.addEventListener("change", () => setWindSpeedUnit("km/h"));
+mphRadio.addEventListener("change", () => setWindSpeedUnit("mph"));
 
 function searchCity() {
     let city = cityInput.value;
@@ -126,6 +131,15 @@ function setPressureUnit(unit) {
     }
 }
 
+function setWindSpeedUnit(unit) {
+    if(unit === "km/h" || unit === "mph") {
+        windSpeedUnit = unit;
+        if(currentCityData !== null) {
+            showCurrentWeather();
+        }
+    }
+}
+
 function showCurrentWeather() {
     if(currentCityData === null) {
         currentDataContainer.style.hidden = true;
@@ -157,7 +171,8 @@ function showCurrentWeather() {
                 <li class="list-group-item"><strong>Páratartalom:</strong> ${currentCityData.current.humidity} %</li>
                 <li class="list-group-item"><strong>Légnyomás:</strong> ` + 
                 (pressureUnit === "mb" ? `${currentCityData.current.pressure_mb} hPa` : `${currentCityData.current.pressure_in} inHg`) + `</li>
-                <li class="list-group-item"><strong>Szél:</strong> ${currentCityData.current.wind_kph} km/h, ${currentCityData.current.wind_dir}</li>
+                <li class="list-group-item"><strong>Szél:</strong> ` + 
+                (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + `, ${currentCityData.current.wind_dir}</li>
                 <li class="list-group-item"><strong>Csapadék:</strong> ${currentCityData.current.precip_mm} mm</li>
                 <li class="list-group-item"><strong>UV index:</strong> ${currentCityData.current.uv}</li>
                 <li class="list-group-item"><strong>Látótávolság:</strong> ${currentCityData.current.vis_km} km</li>
