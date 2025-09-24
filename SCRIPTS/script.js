@@ -2,6 +2,7 @@ import { LocationData } from "./MODELS/LocationData.js";
 import { WeatherCondition } from "./MODELS/WeatherConditionData.js";
 import { CurrentWeather } from "./MODELS/CurrentWeatherData.js";
 import { CityWeatherData } from "./MODELS/CityWeatherData.js";
+import { ForecastData } from "./MODELS/ForecastData.js";
 
 const historicalButton = document.getElementById("historicalDataButton");
 const forecastButton = document.getElementById("forecastDataButton");
@@ -29,6 +30,7 @@ const apiKeyFilePath = "../ASSETS/apiKEY.txt"; //Change this to your path
 var apiKey = "";
 var navButtonsClickable = false;
 var currentCityData = null;
+var forecastCityData = null;
 var temperatureUnit = "C"; //C or F
 var pressureUnit = "mb"; //mb or in
 var windSpeedUnit = "km/h"; //km/h or mph
@@ -54,6 +56,7 @@ addEventListener("DOMContentLoaded", function() {
     }
 });
 
+//TODO: search on Enter key press
 searchButton.addEventListener("click", searchCity);
 todayButton.addEventListener("click", showCurrentWeather);
 celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
@@ -74,7 +77,7 @@ function searchCity() {
         return;
     }
     else {
-        getCurrentWeather(city);
+        getWeatherData(city);
     }
 }
 
@@ -122,8 +125,8 @@ function setVisibilityUnit(unit) {
     }
 }
 
-function getCurrentWeather(city){
-    fetch(apiURL + "current.json?key=" + apiKey + "&q=" + city + "&lang=hu")
+function getWeatherData(city){
+    fetch(apiURL + "forecast.json?key=" + apiKey + "&q=" + city + "&days=3&lang=hu")
         .then(response => {
             if(response.status === 400) {
                 todayButton.disabled = true;
@@ -163,9 +166,11 @@ function getCurrentWeather(city){
                     data.current.wind_mph
                 )
             );
+            forecastCityData = new ForecastData(data.forecast);
         }).then(() => {
             showCurrentWeather();
             todayButton.disabled = false;
+            forecastButton.disabled = false;
         })
         .catch(error => {
             console.error("Hiba a város adatainak lekérésekor:", error);
@@ -222,4 +227,8 @@ function showCurrentWeather() {
             </div>
         `;
     }
+}
+
+function showForecast() {
+    //TODO: Implement forecast display
 }
