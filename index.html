@@ -18,6 +18,9 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="btn btn-outline-secondary m-2" data-bs-toggle="offcanvas" href="#settings" role="button" aria-controls="settings"><img src="ASSETS/settings_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg" alt="beállítások"></a>
+                    </li>
                     <li class="nav-item me-2">
                         <input class="form-control m-2" id="cityInput" type="search" placeholder="Város" aria-label="Search"/>
                     </li>
@@ -38,6 +41,29 @@
                 </div>
             </div>
         </nav>
+        
+
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="settings" aria-labelledby="offcanvasLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasLabel">Beállítások</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <h5>Hómérséklet</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="temperature" id="celsiusRadio" checked>
+                    <label class="form-check-label" for="celsiusRadio">
+                        Celsius °C
+                    </label>
+                </div>
+                <div class="form-check">
+                <input class="form-check-input" type="radio" name="temperature" id="fahrenheitRadio">
+                <label class="form-check-label" for="fahrenheitRadio">
+                    Fahrenheit °F
+                </label>
+                </div> 
+            </div>
+        </div>
         <div id="currentData"></div>
         <div id="forecastData"></div>
         <div id="historicalData"></div>

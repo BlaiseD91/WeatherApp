@@ -11,6 +11,8 @@ const searchButton = document.getElementById("searchBtn");
 const currentDataContainer = document.getElementById("currentData");
 const forecastDataContainer = document.getElementById("forecastData");
 const historicalDataContainer = document.getElementById("historicalData");
+const celsiusRadio = document.getElementById("celsiusRadio");
+const fahrenheitRadio = document.getElementById("fahrenheitRadio");
 
 const apiURL = "http://api.weatherapi.com/v1/";
 
@@ -19,6 +21,7 @@ const apiKeyFilePath = "../ASSETS/apiKEY.txt"; //Change this to your path
 var apiKey = "";
 var navButtonsClickable = false;
 var currentCityData = null;
+var temperatureUnit = "C"; //C or F
 
 addEventListener("DOMContentLoaded", function() {
     if(!navButtonsClickable) {
@@ -41,6 +44,8 @@ addEventListener("DOMContentLoaded", function() {
 
 searchButton.addEventListener("click", searchCity);
 todayButton.addEventListener("click", showCurrentWeather);
+celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
+fahrenheitRadio.addEventListener("change", () => setTemperatureUnit("F"));
 
 function searchCity() {
     let city = cityInput.value;
@@ -99,32 +104,26 @@ function searchCity() {
     }
 }
 
+function setTemperatureUnit(unit) {
+    if(unit === "C" || unit === "F") {
+        temperatureUnit = unit;
+        if(currentCityData !== null) {
+            showCurrentWeather();
+        }
+    }
+}
+
 function showCurrentWeather() {
     if(currentCityData === null) {
         currentDataContainer.style.hidden = true;
         todayButton.disabled = true;
     }
     else {
-        //TODO: ez még csak egy teszt, szebbé kell tenni
+        //TODO: mértékegység selectorokkal változzon a kirt adat
         currentDataContainer.style.hidden = false;
         forecastDataContainer.style.hidden = true;
         historicalDataContainer.style.hidden = true;
         currentDataContainer.innerHTML = "";
-        // currentDataContainer.innerHTML += `
-        // <h2>${currentCityData.location.name}, ${currentCityData.location.country}</h2>
-        // <h5>${currentCityData.location.region} Helyi idő: ${currentCityData.location.localtime}</h5>
-        // <img src="https:${currentCityData.current.condition.icon}" alt="${currentCityData.current.condition.text} icon">
-        // <p>Hőmérséklet: ${currentCityData.current.temp_c} °C</p>
-        // <p>Érzett hőmérséklet: ${currentCityData.current.feelslike_c} °C</p>
-        // <p>Leírás: ${currentCityData.current.condition.text}</p>
-        // <p>Páratartalom: ${currentCityData.current.humidity} %</p>
-        // <p>Légnyomás: ${currentCityData.current.pressure_mb} mb</p>
-        // <p>Szél: ${currentCityData.current.wind_kph} km/h, ${currentCityData.current.wind_dir}</p>
-        // <p>Csapadék: ${currentCityData.current.precip_mm} mm</p>
-        // <p>UV index: ${currentCityData.current.uv}</p>
-        // <p>Látótávolság: ${currentCityData.current.vis_km} km</p>
-        // <p>Utolsó frissítés: ${currentCityData.current.last_updated}</p>
-        // `;
         currentDataContainer.innerHTML += `
             <div class="card shadow-sm mt-4" style="max-width: 500px; margin: auto;">
             <div class="card-body">
@@ -137,8 +136,10 @@ function showCurrentWeather() {
                 </div>
                 </div>
                 <ul class="list-group list-group-flush mb-3">
-                <li class="list-group-item"><strong>Hőmérséklet:</strong> ${currentCityData.current.temp_c} °C</li>
-                <li class="list-group-item"><strong>Érzett hőmérséklet:</strong> ${currentCityData.current.feelslike_c} °C</li>
+                <li class="list-group-item"><strong>Hőmérséklet:</strong> ` + 
+                (temperatureUnit === "C" ? `${currentCityData.current.temp_c} °C` : `${currentCityData.current.temp_f} °F`) + `</li>
+                <li class="list-group-item"><strong>Érzett hőmérséklet:</strong> ` +
+                (temperatureUnit ==="C" ? `${currentCityData.current.feelslike_c} °C` : `${currentCityData.current.feelslike_f} °F`) + `</li>
                 <li class="list-group-item"><strong>Leírás:</strong> ${currentCityData.current.condition.text}</li>
                 <li class="list-group-item"><strong>Páratartalom:</strong> ${currentCityData.current.humidity} %</li>
                 <li class="list-group-item"><strong>Légnyomás:</strong> ${currentCityData.current.pressure_mb} mb</li>
