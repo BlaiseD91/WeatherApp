@@ -74,53 +74,7 @@ function searchCity() {
         return;
     }
     else {
-        fetch(apiURL + "current.json?key=" + apiKey + "&q=" + city + "&lang=hu")
-        .then(response => {
-            if(response.status === 400) {
-                todayButton.disabled = true;
-                alert("Hibás városnév!");
-                throw new Error("Hibás városnév");
-            }
-            return response.json();    
-        })
-        .then(data => {
-            currentCityData = new CityWeatherData(
-                new LocationData(
-                    data.location.country,
-                    data.location.localtime,
-                    data.location.name,
-                    data.location.region
-                ),
-                new CurrentWeather(
-                    new WeatherCondition(
-                        data.current.condition.text,
-                        data.current.condition.icon),
-                    data.current.feelslike_c,
-                    data.current.feelslike_f,
-                    data.current.humidity,
-                    data.current.last_updated,
-                    data.current.precip_in,
-                    data.current.precip_mm,
-                    data.current.pressure_in,
-                    data.current.pressure_mb,
-                    data.current.temp_c,
-                    data.current.temp_f,
-                    data.current.uv,
-                    data.current.vis_km,
-                    data.current.vis_miles,
-                    data.current.wind_degree,
-                    data.current.wind_dir,
-                    data.current.wind_kph,
-                    data.current.wind_mph
-                )
-            );
-        }).then(() => {
-            showCurrentWeather();
-            todayButton.disabled = false;
-        })
-        .catch(error => {
-            console.error("Hiba a város adatainak lekérésekor:", error);
-        });
+        getCurrentWeather(city);
     }
 }
 
@@ -168,16 +122,66 @@ function setVisibilityUnit(unit) {
     }
 }
 
+function getCurrentWeather(city){
+    fetch(apiURL + "current.json?key=" + apiKey + "&q=" + city + "&lang=hu")
+        .then(response => {
+            if(response.status === 400) {
+                todayButton.disabled = true;
+                alert("Hibás városnév!");
+                throw new Error("Hibás városnév");
+            }
+            return response.json();    
+        })
+        .then(data => {
+            currentCityData = new CityWeatherData(
+                new LocationData(
+                    data.location.country,
+                    data.location.localtime,
+                    data.location.name,
+                    data.location.region
+                ),
+                new CurrentWeather(
+                    new WeatherCondition(
+                        data.current.condition.text,
+                        data.current.condition.icon),
+                    data.current.feelslike_c,
+                    data.current.feelslike_f,
+                    data.current.humidity,
+                    data.current.last_updated,
+                    data.current.precip_in,
+                    data.current.precip_mm,
+                    data.current.pressure_in,
+                    data.current.pressure_mb,
+                    data.current.temp_c,
+                    data.current.temp_f,
+                    data.current.uv,
+                    data.current.vis_km,
+                    data.current.vis_miles,
+                    data.current.wind_degree,
+                    data.current.wind_dir,
+                    data.current.wind_kph,
+                    data.current.wind_mph
+                )
+            );
+        }).then(() => {
+            showCurrentWeather();
+            todayButton.disabled = false;
+        })
+        .catch(error => {
+            console.error("Hiba a város adatainak lekérésekor:", error);
+        });
+}
+
 function showCurrentWeather() {
     if(currentCityData === null) {
         currentDataContainer.style.hidden = true;
         todayButton.disabled = true;
     }
     else {
-        //TODO: szélirány átdolgozása
         currentDataContainer.style.hidden = false;
         forecastDataContainer.style.hidden = true;
         historicalDataContainer.style.hidden = true;
+        let windDir = currentCityData.current.wind_degree + 180;
         currentDataContainer.innerHTML = "";
         currentDataContainer.innerHTML += `
             <div class="card shadow-sm mt-4" style="max-width: 500px; margin: auto;">
@@ -193,14 +197,18 @@ function showCurrentWeather() {
                 <ul class="list-group list-group-flush mb-3">
                 <li class="list-group-item"><strong>Hőmérséklet:</strong> ` + 
                 (temperatureUnit === "C" ? `${currentCityData.current.temp_c} °C` : `${currentCityData.current.temp_f} °F`) + `</li>
-                <li class="list-group-item"><strong>Érzett hőmérséklet:</strong> ` +
+                <li class="list-group-item"><strong>Érzékelt hőmérséklet:</strong> ` +
                 (temperatureUnit ==="C" ? `${currentCityData.current.feelslike_c} °C` : `${currentCityData.current.feelslike_f} °F`) + `</li>
                 <li class="list-group-item"><strong>Leírás:</strong> ${currentCityData.current.condition.text}</li>
                 <li class="list-group-item"><strong>Páratartalom:</strong> ${currentCityData.current.humidity} %</li>
                 <li class="list-group-item"><strong>Légnyomás:</strong> ` + 
                 (pressureUnit === "mb" ? `${currentCityData.current.pressure_mb} hPa` : `${currentCityData.current.pressure_in} inHg`) + `</li>
                 <li class="list-group-item"><strong>Szél:</strong> ` + 
-                (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + `, ${currentCityData.current.wind_dir}</li>
+                (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + `,
+                <svg width="32" height="32" viewBox="0 0 32 32" style="transform: rotate(${windDir}deg);">
+                <polygon points="16,4 22,20 16,16 10,20" fill="#1976d2"/>
+                    <line x1="16" y1="28" x2="16" y2="8" stroke="#1976d2" stroke-width="2"/>
+                </svg></li>
                 <li class="list-group-item"><strong>Csapadék:</strong> ` +
                 (precipitationUnit === "mm" ? `${currentCityData.current.precip_mm} mm` : `${currentCityData.current.precip_in} inch`) + `</li>
                 <li class="list-group-item"><strong>UV index:</strong> ${currentCityData.current.uv}</li>
