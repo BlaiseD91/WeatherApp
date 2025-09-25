@@ -63,6 +63,7 @@ cityInput.addEventListener("keydown", function(event) {
     }
 });
 todayButton.addEventListener("click", showCurrentWeather);
+forecastButton.addEventListener("click", showForecast);
 celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
 fahrenheitRadio.addEventListener("change", () => setTemperatureUnit("F"));
 pressureMbRadio.addEventListener("change", () => setPressureUnit("mb"));
@@ -88,8 +89,11 @@ function searchCity() {
 function setTemperatureUnit(unit) {
     if(unit === "C" || unit === "F") {
         temperatureUnit = unit;
-        if(currentCityData !== null) {
-            showCurrentWeather();
+        if(currentCityData !== null && forecastCityData !== null) {
+            if(currentDataContainer.hidden === false)
+                showCurrentWeather();
+            if(forecastDataContainer.hidden === false)
+                showForecast();
         }
     }
 }
@@ -105,8 +109,11 @@ function setPressureUnit(unit) {
 function setWindSpeedUnit(unit) {
     if(unit === "km/h" || unit === "mph") {
         windSpeedUnit = unit;
-        if(currentCityData !== null) {
-            showCurrentWeather();
+        if(currentCityData !== null && forecastCityData !== null) {
+            if(currentDataContainer.hidden === false)
+                showCurrentWeather();
+            if(forecastDataContainer.hidden === false)
+                showForecast();
         }
     }
 }
@@ -114,8 +121,11 @@ function setWindSpeedUnit(unit) {
 function setPrecipitationUnit(unit) {
     if(unit === "mm" || unit === "in") {
         precipitationUnit = unit;
-        if(currentCityData !== null) {
-            showCurrentWeather();
+        if(currentCityData !== null && forecastCityData !== null) {
+            if(currentDataContainer.hidden === false)
+                showCurrentWeather();
+            if(forecastDataContainer.hidden === false)
+                showForecast();
         }
     }
 }
@@ -183,13 +193,14 @@ function getWeatherData(city){
 
 function showCurrentWeather() {
     if(currentCityData === null) {
-        currentDataContainer.style.hidden = true;
+        currentDataContainer.hidden = true;
         todayButton.disabled = true;
+        return;
     }
     else {
-        currentDataContainer.style.hidden = false;
-        forecastDataContainer.style.hidden = true;
-        historicalDataContainer.style.hidden = true;
+        currentDataContainer.hidden = false;
+        forecastDataContainer.hidden = true;
+        historicalDataContainer.hidden = true;
         let windDir = currentCityData.current.wind_degree + 180;
         currentDataContainer.innerHTML = "";
         currentDataContainer.innerHTML += `
@@ -234,5 +245,126 @@ function showCurrentWeather() {
 }
 
 function showForecast() {
-    //TODO: Implement forecast display
+
+    console.log(forecastCityData);
+    if (!forecastCityData) {
+        forecastButton.disabled = true;
+        forecastDataContainer.hidden = true;
+        return;
+    }
+    currentDataContainer.hidden = true;
+    historicalDataContainer.hidden = true;
+    forecastDataContainer.hidden = false;
+
+    //offcanvas
+    let html = `
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="forecastHoursOffcanvas" aria-labelledby="forecastHoursOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="forecastHoursOffcanvasLabel">Óránkénti előrejelzés</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Bezárás"></button>
+        </div>
+        <div class="offcanvas-body" id="forecastHoursOffcanvasBody">
+        </div>
+    </div>
+    <style>
+        #forecastHoursOffcanvas.offcanvas {
+            width: 500px !important;
+            max-width: 90vw;
+        }
+    </style>
+    `;
+
+    //carousel
+    html += `
+    <div id="forecastCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            ${forecastCityData.forecastday.map((dayObj, idx) => {
+                const day = dayObj.day;
+                return `
+                <div class="carousel-item${idx === 0 ? " active" : ""}">
+                    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="https:${day.condition.icon}" alt="${day.condition.text}" style="width:48px; height:48px;" class="me-2">
+                                <div>
+                                    <h5 class="card-title mb-0">${dayObj.date}</h5>
+                                    <small class="text-muted">${day.condition.text}</small>
+                                </div>
+                            </div>
+                            <ul class="list-group list-group-flush mb-2">
+                                <li class="list-group-item"><strong>Max hőmérséklet:</strong> ${temperatureUnit === "C" ? `${day.maxtemp_c} °C` : `${day.maxtemp_f} °F`}</li>
+                                <li class="list-group-item"><strong>Min hőmérséklet:</strong> ${temperatureUnit === "C" ? `${day.mintemp_c} °C` : `${day.mintemp_f} °F`}</li>
+                                <li class="list-group-item"><strong>Átlag hőmérséklet:</strong> ${temperatureUnit === "C" ? `${day.avgtemp_c} °C` : `${day.avgtemp_f} °F`}</li>
+                                <li class="list-group-item"><strong>Páratartalom:</strong> ${day.avghumidity} %</li>
+                                <li class="list-group-item"><strong>Szél max:</strong> ${windSpeedUnit === "km/h" ? `${day.maxwind_kph} km/h` : `${day.maxwind_mph} mph`}</li>
+                                <li class="list-group-item"><strong>Csapadék:</strong> ${precipitationUnit === "mm" ? `${day.totalprecip_mm} mm` : `${day.totalprecip_in} inch`}</li>
+                                <li class="list-group-item"><strong>Eső:</strong> ${day.daily_chance_of_rain} %</li>
+                                <li class="list-group-item"><strong>Hó:</strong> ${day.daily_chance_of_snow} %</li>
+                                <li class="list-group-item"><strong>UV index:</strong> ${day.uv}</li>
+                            </ul>
+                            <button class="btn btn-dark w-100" type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#forecastHoursOffcanvas"
+                                data-day-idx="${idx}">
+                                Óránkénti előrejelzés
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join("")}
+        </div>
+        <style>
+            .carousel-control-prev-icon,
+            .carousel-control-next-icon {
+                filter: invert(100%) brightness(0);
+                width: 3rem;
+                height: 3rem;
+                box-shadow: 0 0 0 4px #000;
+                border-radius: 50%;
+            }
+        </style>
+        <button class="carousel-control-prev" type="button" data-bs-target="#forecastCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            <span class="visually-hidden">Előző</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#forecastCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            <span class="visually-hidden">Következő</span>
+        </button>
+    </div>
+    `;
+
+    forecastDataContainer.innerHTML = html;
+
+    //hourly data
+    document.querySelectorAll('[data-day-idx]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.getAttribute('data-day-idx'));
+            const hours = forecastCityData.forecastday[idx].hour;
+            let hoursHtml = `<ul class="list-group">`;
+            hours.forEach(hour => {
+                hoursHtml += `
+                <li class="list-group-item d-flex align-items-center">
+                    <img src="https:${hour.condition.icon}" alt="${hour.condition.text}" style="width:32px; height:32px;" class="me-2">
+                    <div>
+                        <strong>${hour.time.slice(-5)}</strong> - 
+                        ${hour.condition.text}
+                        <div>
+                            Hőmérséklet: ${temperatureUnit === "C" ? `${hour.temp_c} °C` : `${hour.temp_f} °F`},
+                            Páratartalom: ${hour.humidity} %
+                        </div>
+                        <div>
+                            Eső: ${hour.chance_of_rain} %
+                            Hó: ${hour.chance_of_snow} %
+                        </div>
+                    </div>
+                </li>
+                `;
+            });
+            hoursHtml += `</ul>`;
+            document.getElementById('forecastHoursOffcanvasBody').innerHTML = hoursHtml;
+            document.getElementById('forecastHoursOffcanvasLabel').textContent = `Óránkénti előrejelzés - ${forecastCityData.forecastday[idx].date}`;
+        });
+    });
 }
