@@ -3,6 +3,7 @@ import { WeatherCondition } from "./MODELS/WeatherConditionData.js";
 import { CurrentWeather } from "./MODELS/CurrentWeatherData.js";
 import { CityWeatherData } from "./MODELS/CityWeatherData.js";
 import { ForecastData } from "./MODELS/ForecastData.js";
+import { AlertsData } from "./MODELS/AlertsData.js";
 
 const alertsDataButton = document.getElementById("alertsDataButton");
 const forecastButton = document.getElementById("forecastDataButton");
@@ -11,6 +12,7 @@ const cityInput = document.getElementById("cityInput");
 const searchButton = document.getElementById("searchBtn");
 const currentDataContainer = document.getElementById("currentData");
 const forecastDataContainer = document.getElementById("forecastData");
+const alertsContent = document.getElementById("alertsContent");
 const celsiusRadio = document.getElementById("celsiusRadio");
 const fahrenheitRadio = document.getElementById("fahrenheitRadio");
 const pressureMbRadio = document.getElementById("pressureMbRadio");
@@ -80,7 +82,6 @@ function searchCity() {
     }
     else {
         getWeatherData(city);
-        getCityAlerts(city);
     }
 }
 
@@ -138,7 +139,7 @@ function setVisibilityUnit(unit) {
 }
 
 function getWeatherData(city){
-    fetch(apiURL + "forecast.json?key=" + apiKey + "&q=" + city + "&days=3&lang=hu")
+    fetch(apiURL + "forecast.json?key=" + apiKey + "&q=" + city + "&days=3&lang=hu&alerts=yes")
         .then(response => {
             if(response.status === 400) {
                 todayButton.disabled = true;
@@ -179,6 +180,7 @@ function getWeatherData(city){
                 )
             );
             forecastCityData = new ForecastData(data.forecast);
+            saveCityAlerts(data)
         }).then(() => {
             showCurrentWeather();
             todayButton.disabled = false;
@@ -189,10 +191,15 @@ function getWeatherData(city){
         });
 }
 
-function getCityAlerts(city) {
-    //TODO: implement alerts fetching
-    if(cityAlerts !== null) {
+function saveCityAlerts(data) {
+    if(data.alerts) {
+        cityAlerts = new AlertsData(data);
         alertsDataButton.disabled = false;
+        setAlertsContent();
+    }
+    if(!data.alerts || cityAlerts.alerts.length === 0) {
+        cityAlerts = null;
+        alertsDataButton.disabled = true;
     }
 }
 
@@ -218,7 +225,7 @@ function showCurrentWeather() {
                 </div>
                 </div>
                 <ul class="list-group list-group-flush mb-3">` + 
-                (cityAlerts !== null ? `<li class="list-group-item"><strong>Figyelmeztetések vannak érvényben! További információért kattintson a Figyelmeztetések gombra!</strong>`:``) +
+                (cityAlerts !== null ? `<li class="list-group-item bg-danger text-center"><strong>Figyelmeztetések vannak érvényben! További információért kattintson a Figyelmeztetések gombra!</strong>`:``) +
                 `<li class="list-group-item"><strong>Hőmérséklet:</strong> ` + 
                 (temperatureUnit === "C" ? `${currentCityData.current.temp_c} °C` : `${currentCityData.current.temp_f} °F`) + `</li>
                 <li class="list-group-item"><strong>Érzékelt hőmérséklet:</strong> ` +
@@ -251,7 +258,6 @@ function showForecast() {
         return;
     }
     currentDataContainer.hidden = true;
-    historicalDataContainer.hidden = true;
     forecastDataContainer.hidden = false;
 
     //offcanvas
@@ -377,4 +383,49 @@ function drawWindDirectionArrow(windDegree) {
         <polygon points="16,4 22,20 16,16 10,20" fill="#1976d2"/>
         <line x1="16" y1="28" x2="16" y2="8" stroke="#1976d2" stroke-width="2"/>
     </svg>`;
+}
+function setAlertsContent() {
+    const severityColor = {
+        "Severe": "danger",
+        "Moderate": "warning",
+        "Minor": "info",
+        "Unknown": "secondary"
+    };
+
+    alertsContent.innerHTML = `
+        <div class="container-fluid">
+            <div class="row g-3">
+                ${cityAlerts.alerts.map(alert => {
+                    const color = severityColor[alert.severity] || "secondary";
+                    return `
+                    <div class="col-12 col-lg-12 mx-auto">
+                        <div class="card border-${color} shadow-sm" style="max-width: 1000px; margin: auto;">
+                            <div class="card-header bg-${color} text-white">
+                                <strong>${alert.headline}</strong>
+                                <span class="badge bg-light text-dark ms-2">${alert.event}</span>
+                                <span class="badge bg-dark ms-2">${alert.severity}</span>
+                                <span class="badge bg-secondary ms-2">${alert.msgtype}</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><span class="fw-bold">Leírás:</span> ${alert.desc}</p>
+                                ${alert.areas ? `<p class="mb-1"><span class="fw-bold">Érintett terület:</span> ${alert.areas}</p>` : ""}
+                                <div class="row mb-2">
+                                    <div class="col-auto"><span class="fw-bold">Kategória:</span> ${alert.category}</div>
+                                    <div class="col-auto"><span class="fw-bold">Bizonyosság:</span> ${alert.certainty}</div>
+                                    <div class="col-auto"><span class="fw-bold">Sürgősség:</span> ${alert.urgency}</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="fw-bold">Érvényes:</span> ${alert.effective ? new Date(alert.effective).toLocaleString() : "-"}
+                                    ${alert.expires ? `<span class="ms-3 fw-bold">Lejár:</span> ${new Date(alert.expires).toLocaleString()}` : ""}
+                                </div>
+                                ${alert.instruction ? `<div class="alert alert-info p-2 mb-0"><span class="fw-bold">Teendő:</span> ${alert.instruction}</div>` : ""}
+                                ${alert.note ? `<div class="alert alert-secondary p-2 mt-2 mb-0"><span class="fw-bold">Megjegyzés:</span> ${alert.note}</div>` : ""}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                }).join("")}
+            </div>
+        </div>
+    `;
 }
