@@ -56,8 +56,12 @@ addEventListener("DOMContentLoaded", function() {
     }
 });
 
-//TODO: search on Enter key press
 searchButton.addEventListener("click", searchCity);
+cityInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        searchCity();
+    }
+});
 todayButton.addEventListener("click", showCurrentWeather);
 celsiusRadio.addEventListener("change", () => setTemperatureUnit("C"));
 fahrenheitRadio.addEventListener("change", () => setTemperatureUnit("F"));
