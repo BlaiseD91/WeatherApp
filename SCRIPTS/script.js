@@ -4,14 +4,13 @@ import { CurrentWeather } from "./MODELS/CurrentWeatherData.js";
 import { CityWeatherData } from "./MODELS/CityWeatherData.js";
 import { ForecastData } from "./MODELS/ForecastData.js";
 
-const historicalButton = document.getElementById("historicalDataButton");
+const alertsDataButton = document.getElementById("alertsDataButton");
 const forecastButton = document.getElementById("forecastDataButton");
 const todayButton = document.getElementById("todayDataButton");
 const cityInput = document.getElementById("cityInput");
 const searchButton = document.getElementById("searchBtn");
 const currentDataContainer = document.getElementById("currentData");
 const forecastDataContainer = document.getElementById("forecastData");
-const historicalDataContainer = document.getElementById("historicalData");
 const celsiusRadio = document.getElementById("celsiusRadio");
 const fahrenheitRadio = document.getElementById("fahrenheitRadio");
 const pressureMbRadio = document.getElementById("pressureMbRadio");
@@ -28,9 +27,9 @@ const apiURL = "http://api.weatherapi.com/v1/";
 const apiKeyFilePath = "../ASSETS/apiKEY.txt"; //Change this to your path
 
 var apiKey = "";
-var navButtonsClickable = false;
 var currentCityData = null;
 var forecastCityData = null;
+var cityAlerts = null;
 var temperatureUnit = "C"; //C or F
 var pressureUnit = "mb"; //mb or in
 var windSpeedUnit = "km/h"; //km/h or mph
@@ -38,11 +37,9 @@ var precipitationUnit = "mm"; //mm or in
 var visibilityUnit = "km"; //km or miles
 
 addEventListener("DOMContentLoaded", function() {
-    if(!navButtonsClickable) {
-        historicalButton.disabled = true;
-        forecastButton.disabled = true;
-        todayButton.disabled = true;
-    }
+    alertsDataButton.disabled = true;
+    forecastButton.disabled = true;
+    todayButton.disabled = true;
 
     if(apiKey === "") { //API key loading from file
         fetch(apiKeyFilePath)
@@ -83,6 +80,7 @@ function searchCity() {
     }
     else {
         getWeatherData(city);
+        getCityAlerts(city);
     }
 }
 
@@ -191,6 +189,13 @@ function getWeatherData(city){
         });
 }
 
+function getCityAlerts(city) {
+    //TODO: implement alerts fetching
+    if(cityAlerts !== null) {
+        alertsDataButton.disabled = false;
+    }
+}
+
 function showCurrentWeather() {
     if(currentCityData === null) {
         currentDataContainer.hidden = true;
@@ -200,7 +205,6 @@ function showCurrentWeather() {
     else {
         currentDataContainer.hidden = false;
         forecastDataContainer.hidden = true;
-        historicalDataContainer.hidden = true;
         currentDataContainer.innerHTML = "";
         currentDataContainer.innerHTML += `
             <div class="card shadow-sm mt-4" style="max-width: 500px; margin: auto;">
@@ -213,8 +217,9 @@ function showCurrentWeather() {
                     <small class="text-secondary">Helyi idő: ${currentCityData.location.localtime}</small>
                 </div>
                 </div>
-                <ul class="list-group list-group-flush mb-3">
-                <li class="list-group-item"><strong>Hőmérséklet:</strong> ` + 
+                <ul class="list-group list-group-flush mb-3">` + 
+                (cityAlerts !== null ? `<li class="list-group-item"><strong>Figyelmeztetések vannak érvényben! További információért kattintson a Figyelmeztetések gombra!</strong>`:``) +
+                `<li class="list-group-item"><strong>Hőmérséklet:</strong> ` + 
                 (temperatureUnit === "C" ? `${currentCityData.current.temp_c} °C` : `${currentCityData.current.temp_f} °F`) + `</li>
                 <li class="list-group-item"><strong>Érzékelt hőmérséklet:</strong> ` +
                 (temperatureUnit ==="C" ? `${currentCityData.current.feelslike_c} °C` : `${currentCityData.current.feelslike_f} °F`) + `</li>
