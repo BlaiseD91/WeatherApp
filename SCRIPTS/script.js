@@ -336,7 +336,7 @@ function showForecast() {
     `;
 
     forecastDataContainer.innerHTML = html;
-
+    //TODO: winddir arrow
     //hourly data
     document.querySelectorAll('[data-day-idx]').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -351,10 +351,14 @@ function showForecast() {
                         <strong>${hour.time.slice(-5)}</strong> - 
                         ${hour.condition.text}
                         <div>
-                            Hőmérséklet: ${temperatureUnit === "C" ? `${hour.temp_c} °C` : `${hour.temp_f} °F`},
-                            Páratartalom: ${hour.humidity} %
+                            Hőmérséklet: ${temperatureUnit === "C" ? `${hour.temp_c} °C` : `${hour.temp_f} °F`}
+                            Érzékelt hőmérséklet: ${temperatureUnit === "C" ? `${hour.feelslike_c} °C` : `${hour.feelslike_f} °F`}
                         </div>
                         <div>
+                            Szél: ${windSpeedUnit === "km/h" ? `${hour.wind_kph} km/h` : `${hour.wind_mph} mph`} ${hour.wind_dir}
+                        </div>
+                        <div>
+                            Páratartalom: ${hour.humidity} %
                             Eső: ${hour.chance_of_rain} %
                             Hó: ${hour.chance_of_snow} %
                         </div>
