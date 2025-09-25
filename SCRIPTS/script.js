@@ -201,7 +201,6 @@ function showCurrentWeather() {
         currentDataContainer.hidden = false;
         forecastDataContainer.hidden = true;
         historicalDataContainer.hidden = true;
-        let windDir = currentCityData.current.wind_degree + 180;
         currentDataContainer.innerHTML = "";
         currentDataContainer.innerHTML += `
             <div class="card shadow-sm mt-4" style="max-width: 500px; margin: auto;">
@@ -224,11 +223,7 @@ function showCurrentWeather() {
                 <li class="list-group-item"><strong>Légnyomás:</strong> ` + 
                 (pressureUnit === "mb" ? `${currentCityData.current.pressure_mb} hPa` : `${currentCityData.current.pressure_in} inHg`) + `</li>
                 <li class="list-group-item"><strong>Szél:</strong> ` + 
-                (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + `,
-                <svg width="32" height="32" viewBox="0 0 32 32" style="transform: rotate(${windDir}deg);">
-                <polygon points="16,4 22,20 16,16 10,20" fill="#1976d2"/>
-                    <line x1="16" y1="28" x2="16" y2="8" stroke="#1976d2" stroke-width="2"/>
-                </svg></li>
+                (windSpeedUnit ==="km/h"? `${currentCityData.current.wind_kph} km/h` : `${currentCityData.current.wind_mph} mph`) + drawWindDirectionArrow(currentCityData.current.wind_degree) + `</li>
                 <li class="list-group-item"><strong>Csapadék:</strong> ` +
                 (precipitationUnit === "mm" ? `${currentCityData.current.precip_mm} mm` : `${currentCityData.current.precip_in} inch`) + `</li>
                 <li class="list-group-item"><strong>UV index:</strong> ${currentCityData.current.uv}</li>
@@ -245,8 +240,6 @@ function showCurrentWeather() {
 }
 
 function showForecast() {
-
-    console.log(forecastCityData);
     if (!forecastCityData) {
         forecastButton.disabled = true;
         forecastDataContainer.hidden = true;
@@ -336,7 +329,6 @@ function showForecast() {
     `;
 
     forecastDataContainer.innerHTML = html;
-    //TODO: winddir arrow
     //hourly data
     document.querySelectorAll('[data-day-idx]').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -355,7 +347,7 @@ function showForecast() {
                             Érzékelt hőmérséklet: ${temperatureUnit === "C" ? `${hour.feelslike_c} °C` : `${hour.feelslike_f} °F`}
                         </div>
                         <div>
-                            Szél: ${windSpeedUnit === "km/h" ? `${hour.wind_kph} km/h` : `${hour.wind_mph} mph`} ${hour.wind_dir}
+                            Szél: ${windSpeedUnit === "km/h" ? `${hour.wind_kph} km/h` : `${hour.wind_mph} mph`} ${drawWindDirectionArrow(hour.wind_degree)}
                         </div>
                         <div>
                             Páratartalom: ${hour.humidity} %
@@ -371,4 +363,13 @@ function showForecast() {
             document.getElementById('forecastHoursOffcanvasLabel').textContent = `Óránkénti előrejelzés - ${forecastCityData.forecastday[idx].date}`;
         });
     });
+}
+
+function drawWindDirectionArrow(windDegree) {
+    let windDir = windDegree + 180;
+    return `
+    <svg width="32" height="32" viewBox="0 0 32 32" style="transform: rotate(${windDir}deg);">
+        <polygon points="16,4 22,20 16,16 10,20" fill="#1976d2"/>
+        <line x1="16" y1="28" x2="16" y2="8" stroke="#1976d2" stroke-width="2"/>
+    </svg>`;
 }
